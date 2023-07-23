@@ -1,0 +1,41 @@
+[project]
+name = "racplusplus"
+version = "0.1.1"
+description = "Reciprocal Agglomerative Clustering, optimized for speed/ parallelization in C++."
+authors = [
+    {name = "Porter Hunley", email = "porterhunley@themedicalboard.net"},
+    {name = "Daniel Frees", email = "danielfrees@g.ucla.edu"}
+]
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+requires-python = ">=3.8"
+
+[build-system]
+requires = [
+    "setuptools>=66", 
+    "wheel>=0.38", 
+    "scikit-build>=0.17", 
+    "cmake>=3.26", 
+    "pybind11>2.9",
+    "ninja"
+    ]
+build-backend = "setuptools.build_meta"    
+
+[project.urls]
+"Homepage" = "https://github.com/mediboard/racplusplus"
+"Bug Tracker" = "https://github.com/mediboard/racplusplus/issues"
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64"]
+before-build = "./dependencies_linux.sh"
+
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "arm64"]
+before-build = "./dependencies_mac.sh"
+
+[tool.cibuildwheel.windows]
+archs = ["auto"]
+before-build = "powershell.exe -ExecutionPolicy Bypass -File ./dependencies_windows.ps1"

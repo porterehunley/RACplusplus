@@ -1,0 +1,9 @@
+name: racpp_fresh
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - llvm-openmp
+  - eigen
+  - clang
+  - pybind11
