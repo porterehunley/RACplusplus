@@ -3,7 +3,7 @@
 
 RAC++ - Reciprocal Agglomerative Clustering (in C++). Performs a parallelized, bottom up Agglomerative clustering by pairing and merging reciprocal nearest neighbors. This allows RAC++ to scale to much larger datasets than traditional agglomerative clustering while keeping the results (almost always) the same.
 
-All the positive attributes of Agglomerative clsutering remain with RAC++ as well. It produces meaningful clusters with little parameter tuning and can create whole taxonomies as well. 
+All the positive attributes of Agglomerative clustering remain with RAC++ as well. It produces meaningful clusters with little parameter tuning and can create whole taxonomies as well. 
 
 Based on the paper:
 ```
@@ -16,9 +16,6 @@ Based on the paper:
   url          = {https://arxiv.org/abs/2105.11653},
 }
 ```
-<br />
-<br />
-
 ## How to use RAC++
 
 RAC++ is available via PyPI for Python 3.8 and up on all major platforms. Install it via pip:
@@ -36,7 +33,7 @@ labels = racplusplus.rac(
 )
 ```
 
-It should be noted that only the ` Average ` linkage method is avilable as of writing this Readme.
+It should be noted that only the ` Average ` linkage method is available as of writing this Readme.
 
 - ` X ` the array of points
 - ` max_merge_distance ` the merge threshold
@@ -48,9 +45,9 @@ It should be noted that only the ` Average ` linkage method is avilable as of wr
 As of right now, returning the whole tree is not yet available.
 
 ## Performance
-RAC++ is designed to scale Agglomerative clustering to much larger datasets. It runs *significantly* faster than traditional Agglomerative clustering and scales better as well. Right now, RAC++ can run just fine on datsets in the hundreds of thousands, even in very high dimensions. We expect that to grow sginificantly as we add options to optimize towards a linear runtime.
+RAC++ is designed to scale Agglomerative clustering to much larger datasets. It runs *significantly* faster than traditional Agglomerative clustering and scales better as well. Right now, RAC++ can run just fine on datasets in the hundreds of thousands, even in very high dimensions. We expect that to grow significantly as we add options to optimize towards a linear runtime.
 
-Here are some benchmarking examples: [Bechnmarking](https://github.com/mediboard/racplusplus/blob/main/notebooks/RACBenchmarks.ipynb)
+Here are some benchmarking examples: [Benchmarking](https://github.com/mediboard/racplusplus/blob/main/notebooks/RACBenchmarks.ipynb)
 
 **Results**
 RAC++ produces the exact same results as Agglomerative clustering when the points are fully connected.
@@ -58,7 +55,7 @@ RAC++ produces the exact same results as Agglomerative clustering when the point
  Even if the connectivity is limited, the results are almost always the same or a *tad* off. However, there are some outlier cases when the results can differ wildly with limited connectivity, so it's a good idea to check the results visually with subsample of data.
 
 ## Development status
-We're aiming to recreate as many features from traditional agglomerative clustering as is feasible for the RAC aglorithm. 
+We're aiming to recreate as many features from traditional agglomerative clustering as is feasible for the RAC algorithm. 
 
 
 |         Feature Name     |  Status |
