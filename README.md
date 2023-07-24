@@ -16,6 +16,12 @@ Based on the paper:
   url          = {https://arxiv.org/abs/2105.11653},
 }
 ```
+
+## Contributors
+
+Porter Hunley — @porterehunley
+Daniel Frees — @danielfrees
+
 ## How to use RAC++
 
 RAC++ is available via PyPI for Python 3.8 and up on all major platforms. Install it via pip:
