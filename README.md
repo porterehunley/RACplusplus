@@ -20,6 +20,7 @@ Based on the paper:
 ## Contributors
 
 Porter Hunley — @porterehunley
+
 Daniel Frees — @danielfrees
 
 ## How to use RAC++
