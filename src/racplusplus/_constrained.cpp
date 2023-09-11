@@ -1,0 +1,1 @@
+// The function for a constrained matrix

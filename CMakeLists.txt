@@ -79,6 +79,7 @@ include_directories(${EIGEN3_INCLUDE_DIRS} )
 set(python_module_name _racplusplus)
 pybind11_add_module(${python_module_name} MODULE
      src/racplusplus/_racplusplus.cpp
+     src/racplusplus/distances/_distances.cpp
     )
 
 #-----------------------------------Link Libraries-------------------------------------

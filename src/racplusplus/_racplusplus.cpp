@@ -20,6 +20,7 @@ namespace py = pybind11;
 #include <numeric>
 
 #include "_racplusplus.h"
+#include "distances/_distances.h"
 
 //get number of processors
 size_t getProcessorCount() {
@@ -150,7 +151,6 @@ void Cluster::update_nn(Eigen::MatrixXd& distance_arr, double max_merge_distance
         this->nn = -1;
     }
 }
-
 //---------------------End Classes------------------------------------
 
 
@@ -186,13 +186,6 @@ Eigen::MatrixXd generateRandomMatrix(int rows, int cols, int seed) {
     return mat;
 }
 
-double get_arr_value(Eigen::MatrixXd& arr, int i, int j) {
-    if (i > j) {
-        return arr(j, i);
-    }
-    return arr(i, j);
-}
-
 void set_arr_value(Eigen::MatrixXd& arr, int i, int j, double value) {
     if (i > j) {
         arr(j, i) = value;
@@ -208,21 +201,6 @@ void remove_secondary_clusters(std::vector<std::pair<int, int> >& merges, std::v
     }
 }
 //--------------------End Helpers------------------------------------
-
-//-----------------------Distance Calculations-------------------------
-//Calculate pairwise cosines between two matrices
-Eigen::MatrixXd pairwise_cosine(const Eigen::MatrixXd& array_a, const Eigen::MatrixXd& array_b) {
-    return Eigen::MatrixXd::Ones(array_a.cols(), array_b.cols()) - (array_a.transpose() * array_b);
-}
-
-//Calculate pairwise euclidean between two matrices
-Eigen::MatrixXd pairwise_euclidean(const Eigen::MatrixXd& array_a, const Eigen::MatrixXd& array_b) {
-    Eigen::MatrixXd D = -2.0 * array_a.transpose() * array_b;
-    D.colwise() += array_a.colwise().squaredNorm().transpose();
-    D.rowwise() += array_b.colwise().squaredNorm();
-    return D.array().sqrt();
-}
-
 //Averaged dissimilarity across two matrices (wrapper for pairwise distance calc + avging)
 double calculate_weighted_dissimilarity(Eigen::MatrixXd points_a, Eigen::MatrixXd points_b) {
     Eigen::MatrixXd dissimilarity_matrix = pairwise_cosine(points_a, points_b);
