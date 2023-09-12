@@ -547,8 +547,6 @@ void merge_cluster_full(
     distance_arr.col(main_cluster->id) = avg_col;
 
     // Set secondary column to infinity
-    // distance_arr.col(secondary_cluster->id) = Eigen::VectorXd::Constant(clusters.size(), std::numeric_limits<double>::infinity());
-
     main_cluster->indices.insert(main_cluster->indices.end(), secondary_cluster->indices.begin(), secondary_cluster->indices.end());
 }
 
