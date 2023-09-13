@@ -1,8 +1,10 @@
 #include <tuple>
 #include <vector>
+#include <thread>
 
 #include "RAC.h"
 #include "distances/_distances.h"
+#include "utils.h"
 
 
 Eigen::MatrixXd RAC::calculate_initial_dissimilarities(Eigen::MatrixXd& base_arr) {
@@ -105,7 +107,49 @@ void RAC::merge_cluster_full(
     distance_arr.col(main_cluster->id) = avg_col;
 
     // Set secondary column to infinity
-    main_cluster->indices.insert(main_cluster->indices.end(), secondary_cluster->indices.begin(), secondary_cluster->indices.end());
+    main_cluster->indices.insert(
+        main_cluster->indices.end(),
+        secondary_cluster->indices.begin(),
+        secondary_cluster->indices.end());
 }
 
 
+void RAC::parallel_merge_clusters(std::vector<std::pair<int,int>> merges) {
+    std::vector<std::thread> threads;
+
+    std::vector<std::vector<std::pair<int, int>>> merge_chunks;
+    merge_chunks = utils::chunk_vector(merges, no_threads);
+
+    for (size_t i=0; i<no_threads; i++) {
+        std::thread merge_thread = std::thread(
+            merge_clusters_full,
+            std::ref(merge_chunks[i]),
+            std::ref(merges));
+
+        threads.push_back(std::move(merge_thread));
+    }
+
+    for (size_t i=0; i<no_threads; i++) {
+        threads[i].join();
+    }
+}
+
+
+void RAC::update_cluster_neighbors(
+    Eigen::MatrixXd& distance_arr,
+    std::vector<std::pair<int, int>> merges) {
+
+    // copy merges columns to rows in distance_arr
+    for (size_t i=0; i<merges.size(); i++) {
+        int cluster_id = merges[i].first;
+
+        distance_arr.row(cluster_id) = distance_arr.col(cluster_id);
+    }
+
+    for (size_t i=0; i<merges.size(); i++) {
+        int cluster_id = merges[i].second;
+
+        distance_arr.col(cluster_id) = Eigen::VectorXd::Constant(distance_arr.cols(), std::numeric_limits<double>::infinity());
+        distance_arr.row(cluster_id) = distance_arr.col(cluster_id);
+    }
+}

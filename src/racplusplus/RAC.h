@@ -1,3 +1,7 @@
+#include "<unordered_map>"
+#include "<vector>"
+#include "<tuple>"
+
 #include "Eigen/Dense"
 #include "Eigen/Sparse"
 
@@ -13,7 +17,7 @@ public:
     std::vector<std::pair<int, double>> neighbor_distances;
     std::vector<int> neighbors;
     std::vector<int> indices;
-    std::unordered_map<int, double> dissimilarities;
+    std::unordered_map<int, double> dissimilarities; //TODO get rid of this with compute
     std::vector<std::tuple<int, int, double> > neighbors_needing_updates;
     
     Cluster(int id);
