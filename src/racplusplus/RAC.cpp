@@ -1,15 +1,33 @@
 #include <tuple>
 #include <vector>
 #include <thread>
+#include <algorithm>
 
 #include "RAC.h"
 #include "distances/_distances.h"
 #include "utils.h"
 
 
+void RAC::RAC(
+    double max_merge_distance = 1,
+    Eigen::SparseMatrix<bool>* connectivity = nullptr,
+    int batch_size = 0,
+    int no_processors = 1,
+    std::string distance_metric = "euclidean") {
+
+    this->max_merge_distance = max_merge_distance;
+
+    // CONNECTIVITY must be symmetric
+    this->connectivity = connectivity;
+
+    this->batch_size = batch_size;
+    this->no_processors = no_processors;
+    this->distance_metric = distance_metric;
+}
+
+
 Eigen::MatrixXd RAC::calculate_initial_dissimilarities(Eigen::MatrixXd& base_arr) {
     Eigen::MatrixXd distance_mat;
-
     switch (distance_metric) {
     case "cosine":
         distance_mat = pairwise_cosine(base_arr, base_arr).array();
@@ -135,11 +153,8 @@ void RAC::parallel_merge_clusters(std::vector<std::pair<int,int>> merges) {
 }
 
 
-void RAC::update_cluster_neighbors(
-    Eigen::MatrixXd& distance_arr,
-    std::vector<std::pair<int, int>> merges) {
+void RAC::update_cluster_neighbors(std::vector<std::pair<int, int>> merges) {
 
-    // copy merges columns to rows in distance_arr
     for (size_t i=0; i<merges.size(); i++) {
         int cluster_id = merges[i].first;
 
@@ -149,7 +164,127 @@ void RAC::update_cluster_neighbors(
     for (size_t i=0; i<merges.size(); i++) {
         int cluster_id = merges[i].second;
 
-        distance_arr.col(cluster_id) = Eigen::VectorXd::Constant(distance_arr.cols(), std::numeric_limits<double>::infinity());
+        distance_arr.col(cluster_id) = Eigen::VectorXd::Constant(
+            distance_arr.cols(), std::numeric_limits<double>::infinity());
+
         distance_arr.row(cluster_id) = distance_arr.col(cluster_id);
     }
 }
+
+
+void RAC::update_cluster_nn_dist() {
+    for (Cluster* cluster : clusters) {
+        if (cluster == nullptr) {
+            continue;
+        }
+
+        if (cluster->will_merge || (cluster->nn != -1 && clusters[cluster->nn] != nullptr && clusters[cluster->nn]->will_merge)) {
+            cluster->update_nn(distance_arr, max_merge_distance);
+        }
+    }
+}
+
+
+void RAC::update_cluster_dissimilarities(std::vector<std::pair<int, int> >& merges) {
+    if (merges.size() / no_processors > 10) {
+        // TODO refactor this
+        parallel_merge_clusters(merges, distance_arr, clusters, 1);
+    } else {
+
+        for (std::pair<int, int> merge : merges) {
+            merge_cluster_full(merge, merges, clusters, distance_arr);
+        }
+    }
+
+    update_cluster_neighbors(distance_arr, merges);
+}
+
+
+std::vector<std::pair<int, int>> RAC::find_reciprocal_nn() {
+    std::vector<std::pair<int, int>> reciprocal_nn;
+    for (Cluster* cluster : clusters) {
+        if (cluster == nullptr) {
+            continue;
+        }
+
+        cluster -> will_merge = false;
+        if (cluster->nn != -1 && clusters[cluster->nn] != nullptr) {
+            cluster->will_merge = (clusters[cluster->nn]->nn == cluster->id);
+        }
+
+        if (cluster->will_merge && cluster->id < cluster->nn) {
+            reciprocal_nn.push_back(std::make_pair(cluster->id, cluster->nn));
+        }
+    }
+
+    return reciprocal_nn;
+}
+
+
+std::vector<Cluster*> RAC::make_clusters(int no_clusters) {
+    std::vector<Cluster*> new_clusters;
+    for (long i = 0; i < base_arr.cols(); ++i) {
+        Cluster* cluster = new Cluster(i);
+        new_clusters.push_back(cluster);
+    }
+
+    return new_clusters
+}
+
+
+std::vector<int> get_cluster_indices() {
+    std::vector<std::pair<int, int> > cluster_idx;
+    for (Cluster* cluster : clusters) {
+        if (cluster == nullptr) {
+            continue;
+        }
+
+        for (int index : cluster->indices)  {
+            cluster_idx.push_back(std::make_pair(index, cluster->id));
+        }
+    }
+
+    std::sort(cluster_idx.begin(), cluster_idx.end());
+
+    std::vector<int> cluster_labels;
+    for (const auto& [index, cluster_id] : cluster_idx) {
+        cluster_labels.push_back(cluster_id);
+    }
+
+    return cluster_labels;
+}
+
+
+std::vector<int> RAC::predict() {
+    std::vector<std::pair<int, int>> merges = find_reciprocal_nn()
+    while (merges.size() != 0) {
+        update_cluster_dissimilarities(merges)
+
+        update_cluster_nn_dist()
+
+        remove_secondary_clusters(merges)
+
+        merges = find_reciprocal_nn()
+    }
+
+    return get_cluster_indices()
+}
+
+
+void RAC::fit(Eigen::MatrixXd& base_arr) {
+    if (distance_metric == "cosine") {
+        base_arr = base_arr.transpose().colwise().normalized().eval();
+    } else {
+        base_arr = base_arr.transpose().eval();
+    }
+
+    // Initialize internal points
+    clusters = make_clusters(base_arr.cols())
+    distance_arr = calculate_initial_dissimilarities(base_arr)
+}
+
+std::vector<int> fit_predict(Eigen::MatrixXd& base_arr) {
+    fit(base_arr)
+    return predict()
+}
+

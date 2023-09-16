@@ -3,6 +3,16 @@
 #include "Eigen/Dense"
 
 
+Cluster::Cluster(int id)
+    : id(id), will_merge(false) {
+        std::vector<int> indices;
+        indices.push_back(id);
+        this->indices = indices;
+
+        this->nn = -1;
+    }
+
+
 Cluster::update_nn(double max_merge_distance) {
     if (neighbor_distances.size() == 0) {
         nn = -1;

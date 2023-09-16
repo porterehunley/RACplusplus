@@ -502,7 +502,39 @@ std::pair<std::vector<int>, std::vector<int>> split_neighbors(
     return std::make_pair(static_neighbors, merging_neighbors);
 }
 
+// Let's see what it looks like with Ward
+
+// void merge_clsuter_full_ward(
+//     std::pair<int, int>& merge,
+//     std::vector<std::pair<int, int>>& merges,
+//     std::vector<Cluster*>& clusters,
+//     Eigen::MatrixXd& distance_arr) { // Distances here have to be squared
+
+//     Cluster* main_cluster = clusters[merge.first];
+//     Cluster* secondary_cluster = clusters[merge.second];
+
+//     // Get main and secondary columns from distance array
+//     Eigen::VectorXd main_col = distance_arr.col(main_cluster->id);
+//     Eigen::VectorXd secondary_col = distance_arr.col(secondary_cluster->id);
+
+//     // Loop through merges and change main_col vals
+//     for (auto& merge : merges) {
+//         if (merge.first == main_cluster->id || merge.second == main_cluster->id) {
+//             continue;
+//         }
+
+//         int merge_main = merge.first;
+//         int merge_secondary = merge.second;
+
+//         int merge_main_size = clusters[merge_main]->indices.size();
+//         int merge_secondary_size = clusters[merge_secondary]->indices.size();
+
+        
+//     }
+// }
+
 // Merges with the full distance array
+// Can this be split up with different linkage methods
 void merge_cluster_full(
     std::pair<int, int>& merge,
     std::vector<std::pair<int, int>>& merges,
@@ -666,39 +698,13 @@ void merge_cluster_symmetric_linkage(
             merging_array[smallest_id].first = -1;
         }
     }
-    // std::cout << "Merging array for merge" << merge.first << " " << merge.second << std::endl;
-    // for (int i=0; i<merging_array.size(); ++i) {
-    //     std::cout << merging_array[i].first << " " << merging_array[i].second << std::endl;
-    // }
-    // std::cout << "-----------------" << std::endl;
-
-    // // print out new neighbors
-    // for (auto& neighbor :new_neighbors) {
-    //     std::cout << neighbor.first << " " << neighbor.second << std::endl;
-    // }
-
-    // std::cout << "-----------------" << std::endl;
-    // // print out old neighbors
-    // for (auto& neighbor : main_cluster->neighbor_distances) {
-    //     std::cout << neighbor.first << " " << neighbor.second << std::endl;
-    // }
-
-    // std::cout << "-----------------" << std::endl;
-    // for (auto& neighbor : secondary_cluster->neighbor_distances) {
-    //     std::cout << neighbor.first << " " << neighbor.second << std::endl;
-    // }
 
     main_cluster->neighbor_distances = new_neighbors;
     main_cluster->neighbors_needing_updates = needs_update;
-
-
-    // print out neighbors needing updates
-    // for (auto& neighbor : needs_update) {
-    //     std::cout << std::get<1>(neighbor) << " " << std::get<2>(neighbor) << std::endl;
-    // }
 }
 
 // Computes missing edges on the fly for a more balanced tree
+// TODO this hasn't been tested in a long time
 void merge_cluster_compute_linkage(
     std::pair<int, int>& merge,
     std::vector<Cluster*>& clusters,
