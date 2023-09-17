@@ -232,7 +232,7 @@ std::vector<Cluster*> RAC::make_clusters(int no_clusters) {
 }
 
 
-std::vector<int> get_cluster_indices() {
+std::vector<int> RAC::get_cluster_indices() {
     std::vector<std::pair<int, int> > cluster_idx;
     for (Cluster* cluster : clusters) {
         if (cluster == nullptr) {

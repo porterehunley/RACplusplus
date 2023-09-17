@@ -34,26 +34,42 @@ public:
 
 class RAC {
 public:
-    RAC(
-        Eigen::MatrixXd& base_arr,
-        double max_merge_distance,
-        double max_merge_distance = 1,
-        Eigen::SparseMatrix<bool>* = nullptr,
+    RAC(double max_merge_distance = 1,
+        Eigen::SparseMatrix<bool>* connectivity = nullptr,
         int batch_size = 0,
         int no_processors = 1,
         std::string distance_metric = "euclidean");
 
+    void fit(Eigen::MatrixXd& base_arr);
+    std::vector<int> predict();
+    std::vector<int> fit_predict(Eigen::MatrixXd& base_arr);
+
+
 private:
+    // Instance vars
     Eigen::MatrixXd& distance_arr;
     Eigen::SparseMatrix<bool>* connectivity;
-
     std::vector<Cluster> clusters;
-
     int batch_size;
     int no_processors;
     std::string distance_metric;
-
     double max_merge_distance;
+
+    // Methods
+    Eigen::MatrixXd calculate_initial_dissimilarities(Eigen::MatrixXd& base_arr);
+    void merge_clusters_full(
+        std::vector<std::pair<int, int> >& merges,
+        std::vector<std::pair<int, int> >& all_merges);
+    void merge_cluster_full(
+        std::pair<int, int>& merge,
+        std::vector<std::pair<int, int>>& merges);
+    void parallel_merge_clusters(std::vector<std::pair<int,int>> merges);
+    void update_cluster_neighbors(std::vector<std::pair<int, int>> merges);
+    void update_cluster_nn_dist();
+    void update_cluster_dissimilarities(std::vector<std::pair<int, int> >& merges);
+    std::vector<std::pair<int, int>> find_reciprocal_nn();
+    std::vector<Cluster*> make_clusters(int no_clusters);
+    std::vector<int> get_cluster_indices();
 };
 
 #endif //RAC_H
