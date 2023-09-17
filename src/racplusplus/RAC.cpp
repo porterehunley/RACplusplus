@@ -6,7 +6,9 @@
 #include "RAC.h"
 #include "distances/_distances.h"
 #include "utils.h"
+#include <pybind11/pybind11.h>
 
+namespace py = pybind11;
 
 void RAC::RAC(
     double max_merge_distance = 1,
@@ -286,5 +288,58 @@ void RAC::fit(Eigen::MatrixXd& base_arr) {
 std::vector<int> fit_predict(Eigen::MatrixXd& base_arr) {
     fit(base_arr)
     return predict()
+}
+
+
+py::array fit_predict_py(Eigen::MatrixXd& base_arr) {
+    cluster_labels = fit_predict(base_arr);
+
+    py::array cluster_labels_arr =  py::cast(cluster_labels);
+    return cluster_labels_arr;
+}
+
+
+static RAC RAC::RAC_py(
+    double max_merge_distance = 1,
+    py::object connectivity = py::none(),
+    int batch_size = 0,
+    int no_processors = 1,
+    std::string distance_metric = "euclidean") {
+
+    std::shared_ptr<Eigen::SparseMatrix<bool>> sparse_connectivity = nullptr;
+    if (!connectivity.is_none()) {
+        sparse_connectivity = std::make_shared<Eigen::SparseMatrix<bool>>(
+            connectivity.cast<Eigen::SparseMatrix<bool>>());
+    }
+
+    return RAC(
+        max_merge_distance,
+        sparse_connectivity,
+        base_arr,
+        no_processors,
+        distance_metric);
+}
+
+
+// TODO add docs
+PYBIND11_MODULE(RAC, m) {
+    py::class_<Pet>(m, "RAC")
+        .def(py::init(&RAC::RAC_py))
+        .def(py::init([](
+            double max_merge_distance = 1,
+            py::object connectivity = py::none(),
+            int batch_size = 0,
+            int no_processors = 1,
+            std::string distance_metric = "euclidean") {
+                return new RAC(
+                    max_merge_distance,
+                    connectivity,
+                    batch_size,
+                    no_processors,
+                    distance_metric
+                );
+            }
+        ))
+        .def("fit_predict", &RAC::fit_predict_py);
 }
 
